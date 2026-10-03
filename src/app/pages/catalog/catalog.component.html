@@ -1,0 +1,43 @@
+<section class="hero">
+  <div>
+    <p class="eyebrow">{{ i18n.text().eyebrow }}</p>
+    <h1>{{ i18n.text().heroStart }}<br><em>{{ i18n.text().heroEnd }}</em></h1>
+    <p class="hero-copy">{{ i18n.text().heroCopy }}</p>
+    <a class="button" routerLink="/catalog" fragment="courses">{{ i18n.text().findCourse }} <span aria-hidden="true">↗</span></a>
+  </div>
+  <div class="hero-art" aria-hidden="true">
+    <span class="art-caption">{{ i18n.text().idea }}</span><div class="art-orbit"></div>
+    <div class="art-tile tile-one">&lt;/&gt;</div><div class="art-tile tile-two">✳</div>
+    <span class="art-bottom">{{ i18n.text().theory }} ↗</span>
+  </div>
+</section>
+<section id="courses" class="catalog-section">
+  <div class="section-heading"><h2>{{ i18n.text().catalog }}</h2><span class="muted">{{ i18n.text().pace }}</span></div>
+  <div class="filters">
+    <label class="search-field"><span>{{ i18n.text().search }}</span><input type="search" [formControl]="search" [placeholder]="i18n.text().searchPlaceholder" autocomplete="off"></label>
+    <label class="category-field"><span>{{ i18n.text().category }}</span><select [formControl]="category"><option value="">{{ i18n.text().allCategories }}</option>@for (item of categories; track item) { <option [value]="item">{{ i18n.category(item) }}</option> }</select></label>
+  </div>
+  @if (state$ | async; as state) {
+    <div aria-live="polite" class="results-meta">@if (state.loading) { {{ i18n.text().selecting }} } @else { {{ i18n.text().found }} {{ state.courses.length }} }</div>
+    @if (state.loading) { <div class="empty-state" role="status">{{ i18n.text().loadingCatalog }}</div> }
+    @else if (state.error) { <p class="notice" role="alert">{{ i18n.text().catalogError }}</p> }
+    @else if (!state.courses.length) {
+      <div class="empty-state"><h3>{{ i18n.text().nothing }}</h3><p>{{ i18n.text().trySearch }}</p><button class="button secondary" (click)="reset()">{{ i18n.text().reset }}</button></div>
+    } @else {
+      <div class="course-grid">@for (course of state.courses; track course.id) {
+        <article class="course-card">
+          <a [class]="'course-cover ' + course.color" [routerLink]="['/course', course.id]" [attr.aria-label]="i18n.text().details + ' ' + i18n.course(course).title">
+            <span class="cover-category">{{ i18n.category(course.category) }}</span><span class="cover-symbol" aria-hidden="true">{{ course.symbol }}</span><span class="cover-arrow" aria-hidden="true">↗</span>
+          </a>
+          <div class="card-body">
+            <p class="course-meta">{{ i18n.level(course) }} <span>·</span> {{ course.hours }} {{ i18n.text().hours }}</p>
+            <h3><a [routerLink]="['/course', course.id]">{{ i18n.course(course).title }}</a></h3>
+            <p class="card-description">{{ i18n.course(course).description }}</p>
+            <div class="card-bottom"><strong>{{ i18n.price(course.price) }}</strong><button class="button small" (click)="cart.add(course.id)" [disabled]="cart.quantity(course.id) >= maxQuantity" [attr.aria-label]="i18n.text().add + ': ' + i18n.course(course).title">{{ cart.quantity(course.id) ? i18n.text().more : i18n.text().add }}</button></div>
+            @if (cart.quantity(course.id)) { <a class="in-cart" routerLink="/cart" aria-live="polite">{{ i18n.text().inCart }} {{ cart.quantity(course.id) }} →</a> }
+          </div>
+        </article>
+      }</div>
+    }
+  }
+</section>

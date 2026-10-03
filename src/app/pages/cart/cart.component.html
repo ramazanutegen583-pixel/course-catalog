@@ -1,0 +1,44 @@
+<a class="back-link" routerLink="/catalog">← {{ i18n.text().continue }}</a>
+<p class="eyebrow">{{ i18n.text().nextStep }}</p><h1>{{ i18n.text().yourCart }}</h1>
+@if (receipt(); as order) {
+  <section class="success-panel" role="status">
+    <h2>{{ order.name }}, {{ i18n.text().orderSuccess }}</h2>
+    <p>{{ i18n.text().seats }} {{ order.count }} · {{ i18n.text().amount }} {{ i18n.moneyMinor(order.totals[i18n.currency()]) }}</p>
+    <p>{{ i18n.text().demoSuccess }}</p><a class="button" routerLink="/catalog">{{ i18n.text().backCatalog }}</a>
+  </section>
+}
+@if (cart.items().length) {
+  <div class="cart-layout"><section [attr.aria-label]="i18n.text().cartCourses">
+    <p class="muted">{{ i18n.text().quantityHint }}</p>
+    @for (item of cart.items(); track item.course.id) {
+      <article class="cart-row">
+        <div [class]="'cart-symbol ' + item.course.color" aria-hidden="true">{{ item.course.symbol }}</div>
+        <div class="cart-course">
+          <p class="course-meta">{{ i18n.category(item.course.category) }}</p>
+          <h3><a [routerLink]="['/course', item.course.id]">{{ i18n.course(item.course).title }}</a></h3>
+          <p class="muted">{{ i18n.price(item.course.price) }} {{ i18n.text().perSeat }}</p>
+          <button class="text-button" (click)="cart.remove(item.course.id)" [attr.aria-label]="i18n.text().remove + ' ' + i18n.course(item.course).title">{{ i18n.text().remove }}</button>
+        </div>
+        <div class="cart-amount"><div class="quantity-control">
+          <button (click)="cart.setQuantity(item.course.id, item.quantity - 1)" [disabled]="item.quantity === 1" [attr.aria-label]="i18n.text().decrease + ' ' + i18n.course(item.course).title">−</button>
+          <input type="number" min="1" [max]="maxQuantity" step="1" [value]="item.quantity" (input)="updateQuantity(item.course.id, $event, false)" (blur)="updateQuantity(item.course.id, $event)" [attr.aria-label]="i18n.text().quantity + ' ' + i18n.course(item.course).title">
+          <button (click)="cart.setQuantity(item.course.id, item.quantity + 1)" [disabled]="item.quantity >= maxQuantity" [attr.aria-label]="i18n.text().increase + ' ' + i18n.course(item.course).title">+</button>
+        </div><strong>{{ i18n.price(item.course.price, item.quantity) }}</strong></div>
+      </article>
+    }
+  </section><aside class="checkout-panel">
+    <h2>{{ i18n.text().checkout }}</h2>
+    <div class="total-line" aria-live="polite"><span>{{ i18n.text().total }} · {{ i18n.text().seats }} {{ cart.count() }}</span><strong>{{ i18n.moneyMinor(i18n.totalMinor(cart.items())) }}</strong></div>
+    <form [formGroup]="form" (ngSubmit)="checkout()" novalidate>
+      <label for="name">{{ i18n.text().name }}</label><input id="name" formControlName="name" autocomplete="name" [placeholder]="i18n.text().namePlaceholder" maxlength="80" required [attr.aria-invalid]="invalid('name')" aria-describedby="name-error">
+      @if (invalid('name')) { <p id="name-error" class="field-error">{{ i18n.text().nameError }}</p> }
+      <label for="email">{{ i18n.text().email }}</label><input id="email" type="email" formControlName="email" autocomplete="email" placeholder="you@example.com" required [attr.aria-invalid]="invalid('email')" aria-describedby="email-error">
+      @if (invalid('email')) { <p id="email-error" class="field-error">{{ i18n.text().emailError }}</p> }
+      <label for="phone">{{ i18n.text().phone }}</label><input id="phone" type="tel" formControlName="phone" autocomplete="tel" placeholder="+7 700 123 45 67" required [attr.aria-invalid]="invalid('phone')" aria-describedby="phone-error">
+      @if (invalid('phone')) { <p id="phone-error" class="field-error">{{ i18n.text().phoneError }}</p> }
+      <button class="button full checkout-button" type="submit">{{ i18n.text().placeOrder }} →</button><p class="form-note">{{ i18n.text().demoNote }}</p>
+    </form>
+  </aside></div>
+} @else if (!receipt()) {
+  <section class="empty-state"><h2>{{ i18n.text().emptyCart }}</h2><p>{{ i18n.text().emptyHint }}</p><a class="button" routerLink="/catalog">{{ i18n.text().chooseCourse }} →</a></section>
+}
